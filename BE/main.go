@@ -4,13 +4,14 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"koriebruh/pemsikAPI/conf"
 	"koriebruh/pemsikAPI/handler"
 	"log"
 )
 
 func main() {
 
-	var DB = InitDB()
+	var DB = conf.InitDB()
 	var validate = validator.New()
 
 	app := fiber.New()

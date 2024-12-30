@@ -14,10 +14,13 @@ const router = createBrowserRouter([
         element: <Register/>,
     },
     {
-        path: '/articles',
+        path: '/memek',
         element: <Articles/>,
     },
-
+    {
+        path: '*',
+        element: <Login/>,
+    },
 ]);
 
 const RouteList = () => {

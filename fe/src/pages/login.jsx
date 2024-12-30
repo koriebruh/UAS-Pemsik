@@ -1,36 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { loginUser, resetStatus } from '../store/authSlice.jsx';
+import { loginUser, resetStatus } from '../store/authSlice';
 
 const Login = () => {
     const [formData, setFormData] = useState({ email: '', password: '' });
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { status, error, success, token } = useSelector((state) => state.auth);
+    const { status, error, token } = useSelector((state) => state.auth);
     const loading = status === 'loading';
-
-    useEffect(() => {
-        if (token) {
-            navigate('/articles');
-        }
-    }, [token, navigate]);
-
-    useEffect(() => {
-        // Cleanup on unmount
-        return () => {
-            dispatch(resetStatus());
-        };
-    }, [dispatch]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        dispatch(loginUser(formData));
+        const result = await dispatch(loginUser(formData));
+        if (result.payload && result.payload.token) {
+            navigate('/memek'); // Navigasi ke /asu setelah login berhasil
+        }
     };
 
     return (
@@ -38,7 +28,6 @@ const Login = () => {
             <div className="w-full max-w-sm p-8 bg-white rounded-lg shadow-lg">
                 <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Login</h2>
                 {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-                {success && <div className="text-green-500 text-sm mb-4">{success}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
