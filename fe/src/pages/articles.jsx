@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import Header from "../layout/header.jsx";
+import axios from "axios";
 
-const App = () => {
+const Articles = () => {
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [form, setForm] = useState({
@@ -28,9 +29,8 @@ const App = () => {
 
     const fetchArticles = async () => {
         try {
-            const response = await fetch('http://localhost:3000/api/articles');
-            const data = await response.json();
-            setArticles(data.Data);
+            const response = await axios.get('http://localhost:3000/api/articles');
+            setArticles(response.data.Data);
             setLoading(false);
         } catch (error) {
             Toast.fire({
@@ -44,14 +44,11 @@ const App = () => {
     const createArticle = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:3000/api/articles', {
-                method: 'POST',
+            const response = await axios.post('http://localhost:3000/api/articles', form, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(form),
             });
-            const data = await response.json();
             Toast.fire({
                 icon: 'success',
                 title: 'Article created successfully!'
@@ -68,14 +65,11 @@ const App = () => {
 
     const updateArticle = async (id) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/articles/${id}`, {
-                method: 'PUT',
+            const response = await axios.put(`http://localhost:3000/api/articles/${id}`, form, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(form),
             });
-            const data = await response.json();
             Toast.fire({
                 icon: 'success',
                 title: 'Article updated successfully!'
@@ -110,9 +104,7 @@ const App = () => {
 
         if (result.isConfirmed) {
             try {
-                await fetch(`http://localhost:3000/api/articles/${id}`, {
-                    method: 'DELETE',
-                });
+                await axios.delete(`http://localhost:3000/api/articles/${id}`);
                 Toast.fire({
                     icon: 'success',
                     title: 'Article deleted successfully!'
@@ -305,4 +297,4 @@ const App = () => {
     );
 };
 
-export default App;
+export default Articles;
