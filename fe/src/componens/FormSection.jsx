@@ -61,6 +61,15 @@ const FormSection = ({
                             required
                         />
                     </div>
+                    <input
+                        type="text"
+                        name="link_img"  // Ganti 'linkImg' menjadi 'link_img'
+                        placeholder="Enter LinkImg"
+                        value={form.link_img}  // Ubah 'form.linkImg' menjadi 'form.link_img'
+                        onChange={handleInputChange}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                        required
+                    />
                 </div>
                 <div className="space-y-1">
                     <label className="text-sm font-medium text-gray-700">Description</label>

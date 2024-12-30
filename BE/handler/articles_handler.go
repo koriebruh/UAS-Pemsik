@@ -44,6 +44,7 @@ func (h ArticleHandlerImpl) Create(ctx *fiber.Ctx) error {
 		Date:        req.Date,
 		Author:      req.Author,
 		Location:    req.Location,
+		LinkImg:     req.LinkImg,
 	}
 
 	if err := h.db.Create(&data).Error; err != nil {
@@ -77,6 +78,7 @@ func (h ArticleHandlerImpl) Update(ctx *fiber.Ctx) error {
 		Date:        req.Date,
 		Author:      req.Author,
 		Location:    req.Location,
+		LinkImg:     req.LinkImg,
 	}
 
 	if err := h.db.Model(&domain.Article{}).Where("id = ?", params).Updates(data).Error; err != nil {

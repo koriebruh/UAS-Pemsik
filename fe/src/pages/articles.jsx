@@ -14,7 +14,8 @@ const Articles = () => {
         content: '',
         date: '',
         author: '',
-        location: ''
+        location: '',
+        link_img:'',
     });
 
     useEffect(() => {
@@ -45,6 +46,7 @@ const Articles = () => {
 
     const createArticle = async (e) => {
         e.preventDefault();
+        console.log(form)
         try {
             const response = await axios.post('http://localhost:3000/api/articles', form, {
                 headers: {
@@ -107,7 +109,8 @@ const Articles = () => {
             content: '',
             date: '',
             author: '',
-            location: ''
+            location: '',
+            link_img: '',
         });
     };
 
@@ -161,7 +164,11 @@ const Articles = () => {
                                             <span
                                                 className="text-sm">{new Date(article.date).toLocaleDateString()}</span>
                                         </div>
-                                        <p className="text-gray-600 mb-4 line-clamp-3">{article.description}</p>
+                                        <img
+                                            src={article.link_img}
+                                            alt={article.title}
+                                        />                                        <p
+                                        className="text-gray-600 mb-4 line-clamp-3">{article.description}</p>
                                         <div className="flex gap-3">
                                             <button
                                                 onClick={() => handleDeleteClick(article.ID)}

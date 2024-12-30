@@ -14,25 +14,27 @@ Accept: application/json
   "content": "hahahahha mps",
   "date": "2023-1-30",
   "author": "KOrie ",
-  "location": "Semarang Tengah"
+  "location": "Semarang Tengah",
+  "link_img": "https://www.bing.com/images/search?view=detailV2&ccid=LF%2bYgwK%2f&id=9665A2878BCF1603C9F5E218CD5D94F267D85380&thid=OIP.LF-YgwK_sQ3Wu54cM3z1AwHaE7&mediaurl=https%3a%2f%2fi.la-croix.com%2f1400x933%2fsmart%2f2023%2f05%2f23%2f1301268410%2fvolcan-indonesien-Merapi-eruption-23-2023_0.jpg&exph=933&expw=1400&q=bencana+gunung+merapi+img&simid=608046917701476767&FORM=IRPRST&ck=3A77E73D561FAFEF93D75BF5D0BA4934&selectedIndex=0&itb=0&idpp=overlayview&ajaxhist=0&ajaxserp=0"
 }
 
 
 ### UPDATE BY ID
-PUT http://localhost:3000/api/articles/10
+PUT http://localhost:3000/api/articles/2
 Content-Type: application/json
 Accept: application/json
 
 {
-  "title": "JamalJgowoi ",
-  "description": "WOahh bisa banjir ahahhaa",
-  "content": "hahahahhdssa mps",
-  "date": "2024-12-30",
-  "author": "JAMAL",
-  "location": "Semarang"
+  "title": "Banjir di Jakarta",
+  "description": "Banjir melanda beberapa wilayah Jakarta setelah hujan deras selama 5 jam.",
+  "content": "Hujan deras yang mengguyur Jakarta selama lebih dari 5 jam menyebabkan banjir setinggi 1 meter di beberapa wilayah seperti Kemang, Kelapa Gading, dan Cengkareng. Warga dievakuasi ke tempat yang lebih aman.",
+  "date": "2024-12-29T00:00:00+07:00",
+  "author": "Media Lokal",
+  "location": "Jakarta",
+  "link_img": "https://www.bing.com/images/search?view=detailV2&ccid=ptC%2b8LWA&id=36B26517641077CD593B3D7D6344577B720731ED&thid=OIF.LvBM9scfLCZwN2lVcGRccg&mediaurl=https%3a%2f%2fassets.pikiran-rakyat.com%2fcrop%2f201x76%3a1018x684%2f1200x675%2fphoto%2f2024%2f12%2f26%2f2893426480.png&exph=675&expw=1200&q=banjir+jakarta&simid=6996922694477&FORM=IRPRST&ck=2EF04CF6C71F2C267037695570645C72&selectedIndex=7&itb=0&ajaxhist=0&ajaxserp=0"
 }
 
 ### DELETE BY ID
-DELETE http://localhost:3000/api/articles/13
+DELETE http://localhost:3000/api/articles/17
 Content-Type: application/json
 Accept: application/json

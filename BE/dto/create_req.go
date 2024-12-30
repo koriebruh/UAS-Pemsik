@@ -7,4 +7,5 @@ type CreateArticleReq struct {
 	Date        string `json:"date"`
 	Author      string `json:"author"`
 	Location    string `json:"location"`
+	LinkImg     string `json:"link_img"`
 }
