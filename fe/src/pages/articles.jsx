@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchArticles, deleteArticle, createArticle, updateArticle } from '../store/articlesSlice.jsx';
-import Swal from 'sweetalert2';
-import { format } from 'date-fns';
 
-const Article = () => {
-    const dispatch = useDispatch();
-    const articles = useSelector((state) => state.articles.items);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({
+const App = () => {
+    const [articles, setArticles] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [selectedArticleId, setSelectedArticleId] = useState(null);
+    const [form, setForm] = useState({
         title: '',
         description: '',
         content: '',
@@ -16,15 +13,85 @@ const Article = () => {
         author: '',
         location: ''
     });
-    const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
-        dispatch(fetchArticles());
-    }, [dispatch]);
+        fetchArticles();
+    }, []);
 
-    const handleCreate = () => {
-        setEditingId(null);
-        setFormData({
+    const fetchArticles = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/api/articles');
+            const data = await response.json();
+            setArticles(data.Data);
+            setLoading(false);
+        } catch (error) {
+            alert('Failed to fetch articles!');
+            setLoading(false);
+        }
+    };
+
+    const createArticle = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch('http://localhost:3000/api/articles', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(form),
+            });
+            const data = await response.json();
+            alert('Article created successfully!');
+            fetchArticles();
+            resetForm();
+        } catch (error) {
+            alert('Failed to create article!');
+        }
+    };
+
+    const updateArticle = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:3000/api/articles/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(form),
+            });
+            const data = await response.json();
+            alert('Article updated successfully!');
+            fetchArticles();
+            resetForm();
+        } catch (error) {
+            alert('Failed to update article!');
+        }
+    };
+
+    const handleDeleteClick = (id) => {
+        setSelectedArticleId(id);
+        setShowDeleteDialog(true);
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await fetch(`http://localhost:3000/api/articles/${selectedArticleId}`, {
+                method: 'DELETE',
+            });
+            alert('Article deleted successfully!');
+            fetchArticles();
+            setShowDeleteDialog(false);
+        } catch (error) {
+            alert('Failed to delete the article!');
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setForm({ ...form, [name]: value });
+    };
+
+    const resetForm = () => {
+        setForm({
             title: '',
             description: '',
             content: '',
@@ -32,221 +99,150 @@ const Article = () => {
             author: '',
             location: ''
         });
-        setIsModalOpen(true);
-    };
-
-    const handleEdit = (article) => {
-        setEditingId(article.ID);
-        setFormData({
-            title: article.title,
-            description: article.description,
-            content: article.content,
-            date: article.date.split('T')[0],
-            author: article.author,
-            location: article.location
-        });
-        setIsModalOpen(true);
-    };
-
-    const handleDelete = (id) => {
-        Swal.fire({
-            title: 'Apakah anda yakin?',
-            text: "Data yang dihapus tidak dapat dikembalikan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, hapus!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                dispatch(deleteArticle(id))
-                    .then(() => {
-                        Swal.fire(
-                            'Terhapus!',
-                            'Artikel berhasil dihapus.',
-                            'success'
-                        );
-                        dispatch(fetchArticles());
-                    });
-            }
-        });
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const action = editingId
-            ? updateArticle({ id: editingId, data: formData })
-            : createArticle(formData);
-
-        dispatch(action)
-            .then(() => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: `Artikel berhasil ${editingId ? 'diupdate' : 'ditambahkan'}`
-                });
-                setIsModalOpen(false);
-                dispatch(fetchArticles());
-            })
-            .catch((error) => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Terjadi kesalahan!'
-                });
-            });
     };
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Artikel Bencana</h1>
-                    <button
-                        onClick={handleCreate}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                        Tambah Artikel
-                    </button>
+            <div className="max-w-7xl mx-auto px-4">
+                <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
+                    Volcanic Disaster Articles
+                </h1>
+
+                {/* Form Section */}
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 className="text-2xl font-semibold mb-4">Create New Article</h2>
+                    <form onSubmit={createArticle} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input
+                                type="text"
+                                name="title"
+                                placeholder="Title"
+                                value={form.title}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                required
+                            />
+                            <input
+                                type="text"
+                                name="author"
+                                placeholder="Author"
+                                value={form.author}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                required
+                            />
+                            <input
+                                type="date"
+                                name="date"
+                                value={form.date}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                required
+                            />
+                            <input
+                                type="text"
+                                name="location"
+                                placeholder="Location"
+                                value={form.location}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                required
+                            />
+                        </div>
+                        <textarea
+                            name="description"
+                            placeholder="Description"
+                            value={form.description}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none h-24"
+                            required
+                        />
+                        <textarea
+                            name="content"
+                            placeholder="Content"
+                            value={form.content}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none h-32"
+                            required
+                        />
+                        <div className="flex gap-2">
+                            <button
+                                type="submit"
+                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                            >
+                                Create Article
+                            </button>
+                            <button
+                                type="button"
+                                onClick={resetForm}
+                                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                            >
+                                Reset Form
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
-                {/* Article Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {articles.map((article) => (
-                        <div
-                            key={article.ID}
-                            className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-                        >
-                            <div className="p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <h2 className="text-xl font-semibold text-gray-800">{article.title}</h2>
-                                    <span className="text-sm text-gray-500">
-                    {format(new Date(article.date), 'dd MMM yyyy')}
-                  </span>
-                                </div>
-                                <p className="text-gray-600 mb-4">{article.description}</p>
-                                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                                    <span>{article.author}</span>
-                                    <span>{article.location}</span>
-                                </div>
-                                <div className="flex justify-end space-x-2">
-                                    <button
-                                        onClick={() => handleEdit(article)}
-                                        className="text-blue-600 hover:text-blue-800 font-medium"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(article.ID)}
-                                        className="text-red-600 hover:text-red-800 font-medium"
-                                    >
-                                        Hapus
-                                    </button>
+                {/* Articles Grid */}
+                {loading ? (
+                    <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {articles.map((article) => (
+                            <div key={article.ID} className="bg-white rounded-lg shadow-md overflow-hidden">
+                                <div className="p-6">
+                                    <h2 className="text-xl font-semibold mb-2">{article.title}</h2>
+                                    <p className="text-sm text-gray-500 mb-4">
+                                        By {article.author} • {new Date(article.date).toLocaleDateString()}
+                                    </p>
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        <span className="font-semibold">Location:</span> {article.location}
+                                    </p>
+                                    <p className="text-sm text-gray-700 mb-4">{article.description}</p>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleDeleteClick(article.ID)}
+                                            className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors"
+                                        >
+                                            Delete
+                                        </button>
+                                        <button
+                                            onClick={() => updateArticle(article.ID)}
+                                            className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 transition-colors"
+                                        >
+                                            Update
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
 
-                {/* Modal Form */}
-                {isModalOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-8 max-w-2xl w-full">
-                            <h2 className="text-2xl font-bold mb-6">
-                                {editingId ? 'Edit Artikel' : 'Tambah Artikel Baru'}
-                            </h2>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Judul
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.title}
-                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full border-gray-300 rounded-md shadow-sm"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Deskripsi
-                                    </label>
-                                    <textarea
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        className="w-full border-gray-300 rounded-md shadow-sm"
-                                        rows="3"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Konten
-                                    </label>
-                                    <textarea
-                                        value={formData.content}
-                                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                                        className="w-full border-gray-300 rounded-md shadow-sm"
-                                        rows="5"
-                                        required
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Tanggal
-                                        </label>
-                                        <input
-                                            type="date"
-                                            value={formData.date}
-                                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                            className="w-full border-gray-300 rounded-md shadow-sm"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Penulis
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.author}
-                                            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                                            className="w-full border-gray-300 rounded-md shadow-sm"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Lokasi
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.location}
-                                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                        className="w-full border-gray-300 rounded-md shadow-sm"
-                                        required
-                                    />
-                                </div>
-                                <div className="flex justify-end space-x-3 mt-6">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                                    >
-                                        Batal
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                                    >
-                                        {editingId ? 'Update' : 'Simpan'}
-                                    </button>
-                                </div>
-                            </form>
+                {/* Delete Confirmation Dialog */}
+                {showDeleteDialog && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+                            <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
+                            <p className="text-gray-600 mb-4">
+                                Are you sure you want to delete this article? This action cannot be undone.
+                            </p>
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    onClick={() => setShowDeleteDialog(false)}
+                                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -255,4 +251,4 @@ const Article = () => {
     );
 };
 
-export default Article;
+export default App;
