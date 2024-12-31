@@ -1,4 +1,4 @@
-Berikut adalah README yang sudah dirapikan dan ditambahkan deskripsi untuk memudahkan pengguna memahami cara menjalankan proyek:
+
 
 ---
 
@@ -54,5 +54,3 @@ Aplikasi frontend akan berjalan di mode pengembangan, biasanya di `http://localh
 - Untuk laporan bug atau kontribusi, silakan hubungi pengembang melalui email yang disediakan atau ajukan *issue* di repository ini.
 
 ---
-
-Coba gunakan format ini untuk memberikan pengalaman yang lebih profesional kepada pengguna. Jika Anda ingin menambahkan informasi lain, beri tahu saya! 😊
