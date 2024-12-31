@@ -3,8 +3,9 @@ const FormSection = ({
                          handleInputChange,
                          createArticle,
                          resetForm,
-                         onCancel, // Tambahkan props untuk tombol Cancel
+                         onCancel, // Add cancel button handler
                          title = "Create New Article",
+                         isEditing = false, // New prop to check if editing
                      }) => {
     return (
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8 transform transition-all hover:shadow-xl">
@@ -63,9 +64,9 @@ const FormSection = ({
                     </div>
                     <input
                         type="text"
-                        name="link_img"  // Ganti 'linkImg' menjadi 'link_img'
+                        name="link_img"  // Fix 'linkImg' to 'link_img'
                         placeholder="Enter LinkImg"
-                        value={form.link_img}  // Ubah 'form.linkImg' menjadi 'form.link_img'
+                        value={form.link_img}  // Update 'form.linkImg' to 'form.link_img'
                         onChange={handleInputChange}
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                         required
@@ -98,7 +99,7 @@ const FormSection = ({
                         type="submit"
                         className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md"
                     >
-                        Create Article
+                        {isEditing ? 'Update Article' : 'Create Article'}
                     </button>
                     <button
                         type="button"
@@ -109,7 +110,7 @@ const FormSection = ({
                     </button>
                     <button
                         type="button"
-                        onClick={onCancel} // Panggil fungsi cancel
+                        onClick={onCancel} // Call the cancel handler
                         className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 shadow-md"
                     >
                         Cancel

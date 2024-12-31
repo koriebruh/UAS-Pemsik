@@ -7,7 +7,7 @@ import FormSection from "../componens/FormSection.jsx";
 const Articles = () => {
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [isFormVisible, setIsFormVisible] = useState(false); // State untuk visibilitas form
+    const [isFormVisible, setIsFormVisible] = useState(false);
     const [form, setForm] = useState({
         title: '',
         description: '',
@@ -15,8 +15,9 @@ const Articles = () => {
         date: '',
         author: '',
         location: '',
-        link_img:'',
+        link_img: '',
     });
+    const [editingArticleId, setEditingArticleId] = useState(null); // State untuk artikel yang sedang diedit
 
     useEffect(() => {
         fetchArticles();
@@ -46,7 +47,6 @@ const Articles = () => {
 
     const createArticle = async (e) => {
         e.preventDefault();
-        console.log(form)
         try {
             const response = await axios.post('http://localhost:3000/api/articles', form, {
                 headers: {
@@ -97,6 +97,30 @@ const Articles = () => {
         }
     };
 
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.put(`http://localhost:3000/api/articles/${editingArticleId}`, form, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            Toast.fire({
+                icon: 'success',
+                title: 'Article updated successfully!'
+            });
+            fetchArticles();
+            resetForm();
+            setIsFormVisible(false);
+            setEditingArticleId(null); // Reset editing state
+        } catch (error) {
+            Toast.fire({
+                icon: 'error',
+                title: 'Failed to update article!'
+            });
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setForm({ ...form, [name]: value });
@@ -116,7 +140,7 @@ const Articles = () => {
 
     return (
         <>
-            <Header/>
+            <Header />
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <h1 className="text-4xl font-bold text-center mb-8 text-gray-800 drop-shadow-sm">
@@ -126,7 +150,10 @@ const Articles = () => {
                     {/* Tombol untuk menampilkan form */}
                     <div className="text-center mb-8">
                         <button
-                            onClick={() => setIsFormVisible(true)}
+                            onClick={() => {
+                                setIsFormVisible(true);
+                                setEditingArticleId(null); // Reset editing state saat menambahkan artikel baru
+                            }}
                             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                             Tambah Artikel
@@ -138,11 +165,12 @@ const Articles = () => {
                         <FormSection
                             form={form}
                             handleInputChange={handleInputChange}
-                            createArticle={createArticle}
+                            createArticle={editingArticleId ? handleUpdate : createArticle} // Use handleUpdate for editing
                             resetForm={resetForm}
-                            onCancel={() => setIsFormVisible(false)} // Fungsi untuk menutup form
+                            onCancel={() => setIsFormVisible(false)}
+                            title={editingArticleId ? "Edit Article" : "Create New Article"}  // Change title based on editing state
+                            isEditing={!!editingArticleId} // Pass isEditing as true if editingArticleId is set
                         />
-
                     )}
 
                     {/* Articles Grid */}
@@ -167,8 +195,8 @@ const Articles = () => {
                                         <img
                                             src={article.link_img}
                                             alt={article.title}
-                                        />                                        <p
-                                        className="text-gray-600 mb-4 line-clamp-3">{article.description}</p>
+                                        />
+                                        <p className="text-gray-600 mb-4 line-clamp-3">{article.description}</p>
                                         <div className="flex gap-3">
                                             <button
                                                 onClick={() => handleDeleteClick(article.ID)}
@@ -177,7 +205,19 @@ const Articles = () => {
                                                 Delete
                                             </button>
                                             <button
-                                                onClick={() => setIsFormVisible(true)}
+                                                onClick={() => {
+                                                    setIsFormVisible(true);
+                                                    setEditingArticleId(article.ID); // Set article ID saat mengedit
+                                                    setForm({
+                                                        title: article.title,
+                                                        description: article.description,
+                                                        content: article.content,
+                                                        date: article.date,
+                                                        author: article.author,
+                                                        location: article.location,
+                                                        link_img: article.link_img,
+                                                    });
+                                                }}
                                                 className="flex-1 px-4 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                                             >
                                                 Edit
