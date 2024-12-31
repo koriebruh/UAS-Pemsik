@@ -1,27 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 import Header from "../layout/header.jsx";
-import axios from "axios";
 import FormSection from "../componens/FormSection.jsx";
+import {
+    fetchArticles,
+    createArticle,
+    updateArticle,
+    deleteArticle,
+    setFormVisibility,
+    setEditingArticleId,
+    setForm,
+    resetForm
+} from '../store/articlesSlice.jsx';
 
 const Articles = () => {
-    const [articles, setArticles] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [isFormVisible, setIsFormVisible] = useState(false);
-    const [form, setForm] = useState({
-        title: '',
-        description: '',
-        content: '',
-        date: '',
-        author: '',
-        location: '',
-        link_img: '',
-    });
-    const [editingArticleId, setEditingArticleId] = useState(null); // State untuk artikel yang sedang diedit
+    const dispatch = useDispatch();
+    const {
+        articles,
+        loading,
+        isFormVisible,
+        editingArticleId,
+        form
+    } = useSelector(state => state.articles);
 
     useEffect(() => {
-        fetchArticles();
-    }, []);
+        dispatch(fetchArticles());
+    }, [dispatch]);
 
     const Toast = Swal.mixin({
         toast: true,
@@ -31,35 +36,17 @@ const Articles = () => {
         timerProgressBar: true,
     });
 
-    const fetchArticles = async () => {
-        try {
-            const response = await axios.get('http://localhost:3000/api/articles');
-            setArticles(response.data.Data);
-            setLoading(false);
-        } catch (error) {
-            Toast.fire({
-                icon: 'error',
-                title: 'Failed to fetch articles!'
-            });
-            setLoading(false);
-        }
-    };
-
-    const createArticle = async (e) => {
+    const handleCreateArticle = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:3000/api/articles', form, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+            await dispatch(createArticle(form)).unwrap();
             Toast.fire({
                 icon: 'success',
                 title: 'Article created successfully!'
             });
-            fetchArticles();
-            resetForm();
-            setIsFormVisible(false); // Sembunyikan form setelah berhasil membuat artikel
+            dispatch(fetchArticles());
+            dispatch(resetForm());
+            dispatch(setFormVisibility(false));
         } catch (error) {
             Toast.fire({
                 icon: 'error',
@@ -82,12 +69,12 @@ const Articles = () => {
 
         if (result.isConfirmed) {
             try {
-                await axios.delete(`http://localhost:3000/api/articles/${id}`);
+                await dispatch(deleteArticle(id)).unwrap();
                 Toast.fire({
                     icon: 'success',
                     title: 'Article deleted successfully!'
                 });
-                fetchArticles();
+                dispatch(fetchArticles());
             } catch (error) {
                 Toast.fire({
                     icon: 'error',
@@ -100,19 +87,13 @@ const Articles = () => {
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.put(`http://localhost:3000/api/articles/${editingArticleId}`, form, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+            await dispatch(updateArticle({ id: editingArticleId, articleData: form })).unwrap();
             Toast.fire({
                 icon: 'success',
                 title: 'Article updated successfully!'
             });
-            fetchArticles();
-            resetForm();
-            setIsFormVisible(false);
-            setEditingArticleId(null); // Reset editing state
+            dispatch(fetchArticles());
+            dispatch(resetForm());
         } catch (error) {
             Toast.fire({
                 icon: 'error',
@@ -123,19 +104,7 @@ const Articles = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setForm({ ...form, [name]: value });
-    };
-
-    const resetForm = () => {
-        setForm({
-            title: '',
-            description: '',
-            content: '',
-            date: '',
-            author: '',
-            location: '',
-            link_img: '',
-        });
+        dispatch(setForm({ ...form, [name]: value }));
     };
 
     return (
@@ -147,12 +116,11 @@ const Articles = () => {
                         Volcanic Disaster Articles
                     </h1>
 
-                    {/* Tombol untuk menampilkan form */}
                     <div className="text-center mb-8">
                         <button
                             onClick={() => {
-                                setIsFormVisible(true);
-                                setEditingArticleId(null); // Reset editing state saat menambahkan artikel baru
+                                dispatch(setFormVisibility(true));
+                                dispatch(setEditingArticleId(null));
                             }}
                             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
@@ -160,24 +128,21 @@ const Articles = () => {
                         </button>
                     </div>
 
-                    {/* Tampilkan Form jika isFormVisible true */}
                     {isFormVisible && (
                         <FormSection
                             form={form}
                             handleInputChange={handleInputChange}
-                            createArticle={editingArticleId ? handleUpdate : createArticle} // Use handleUpdate for editing
-                            resetForm={resetForm}
-                            onCancel={() => setIsFormVisible(false)}
-                            title={editingArticleId ? "Edit Article" : "Create New Article"}  // Change title based on editing state
-                            isEditing={!!editingArticleId} // Pass isEditing as true if editingArticleId is set
+                            createArticle={editingArticleId ? handleUpdate : handleCreateArticle}
+                            resetForm={() => dispatch(resetForm())}
+                            onCancel={() => dispatch(setFormVisibility(false))}
+                            title={editingArticleId ? "Edit Article" : "Create New Article"}
+                            isEditing={!!editingArticleId}
                         />
                     )}
 
-                    {/* Articles Grid */}
                     {loading ? (
                         <div className="flex items-center justify-center py-12">
-                            <div
-                                className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+                            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -189,8 +154,9 @@ const Articles = () => {
                                         <div className="flex items-center gap-2 mb-4 text-gray-600">
                                             <span className="text-sm">{article.author}</span>
                                             <span className="text-sm">•</span>
-                                            <span
-                                                className="text-sm">{new Date(article.date).toLocaleDateString()}</span>
+                                            <span className="text-sm">
+                                                {new Date(article.date).toLocaleDateString()}
+                                            </span>
                                         </div>
                                         <img
                                             src={article.link_img}
@@ -206,9 +172,9 @@ const Articles = () => {
                                             </button>
                                             <button
                                                 onClick={() => {
-                                                    setIsFormVisible(true);
-                                                    setEditingArticleId(article.ID); // Set article ID saat mengedit
-                                                    setForm({
+                                                    dispatch(setFormVisibility(true));
+                                                    dispatch(setEditingArticleId(article.ID));
+                                                    dispatch(setForm({
                                                         title: article.title,
                                                         description: article.description,
                                                         content: article.content,
@@ -216,7 +182,7 @@ const Articles = () => {
                                                         author: article.author,
                                                         location: article.location,
                                                         link_img: article.link_img,
-                                                    });
+                                                    }));
                                                 }}
                                                 className="flex-1 px-4 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                                             >
